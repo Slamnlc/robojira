@@ -3,6 +3,7 @@ name = "robojira-cli"
 version = "0.1.0"
 description = ""
 readme = "README.md"
+authors = ["maximbirukov77@gmail.com"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
