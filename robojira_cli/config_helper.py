@@ -12,7 +12,7 @@ def create_config_file() -> Path:
     file.unlink(missing_ok=True)
     home_dir = str(Path.home().absolute())
     data = f"""
-{
+{{
     "jira_username": "", # Your Jira username (email)
     "jira_api_token": "", # Your Jira token (https://id.atlassian.com/manage-profile/security/api-tokens)
     "jira_domain": "", # Your Jira domain
@@ -20,7 +20,7 @@ def create_config_file() -> Path:
     "my_country_code": "UA", # Change to your country code
     "users": {{}}, # Fill for manager mode
     "excel_folder": "{home_dir}" # Update if needed
-}"""
+}}"""
 
     file.write_text(data)
 
