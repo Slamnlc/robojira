@@ -10,7 +10,7 @@ from .config_helper import (
     read_config_file,
     validate_config_data,
 )
-from excel_export import ExcelExporter
+from .excel_export import ExcelExporter
 from .helpers.classes import UserReport
 from .helpers.dateutils import get_current_year, last_day_of_month
 from .helpers.report_analyzer import analyze_reports
