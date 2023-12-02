@@ -4,12 +4,14 @@ import argparse
 import calendar
 import json
 from datetime import datetime
+from pathlib import Path
 
 from .config_helper import (
     is_config_file_exists,
     create_config_file,
     read_config_file,
-    validate_config_data, get_config_file,
+    validate_config_data,
+    get_config_file,
 )
 from .excel_export import ExcelExporter
 from .helpers.classes import UserReport
@@ -20,6 +22,7 @@ from .jira_client import JiraApi
 
 current_year = get_current_year()
 current_month = datetime.now().month
+default_excel_report_dir = Path.home()
 
 robojira_parser = argparse.ArgumentParser(
     description="Script to work with Jira worklog"
@@ -141,8 +144,8 @@ def main():
                 user_reports.append(
                     UserReport(user, reports, not_working_days, month, year)
                 )
-
-        ExcelExporter(user_reports, month, year)
+        excel_folder = config_data.get("excel_folder", default_excel_report_dir)
+        ExcelExporter(user_reports, month, year, Path(excel_folder))
 
 
 if __name__ == "__main__":

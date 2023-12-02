@@ -1,5 +1,6 @@
 import calendar
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import List
 
 import xlsxwriter
@@ -11,14 +12,19 @@ from robojira_cli.helpers.report_analyzer import analyze_reports
 
 
 class ExcelExporter:
-    def __init__(self, user_reports: List[UserReport], month: int, year: int):
+    def __init__(
+        self,
+        user_reports: List[UserReport],
+        month: int,
+        year: int,
+        folder: Path,
+    ):
         key = datetime.now().strftime("%H_%M")
         self.month_name = calendar.month_name[month]
         self.month = month
         self.year = year
-        self.wb = xlsxwriter.Workbook(
-            f"Jira_report_{self.month_name}_{key}.xlsx"
-        )
+        path = folder.joinpath(f"Jira_report_{self.month_name}_{key}.xlsx")
+        self.wb = xlsxwriter.Workbook(path)
         self.summary_ws = self.wb.add_worksheet("Summary")
         self.reports = user_reports
         self._formats = {}

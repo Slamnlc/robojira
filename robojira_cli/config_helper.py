@@ -10,14 +10,16 @@ def get_config_file() -> Path:
 def create_config_file() -> Path:
     file = get_config_file()
     file.unlink(missing_ok=True)
-
-    data = """
+    home_dir = str(Path.home().absolute())
+    data = f"""
 {
     "jira_username": "", # Your Jira username (email)
     "jira_api_token": "", # Your Jira token (https://id.atlassian.com/manage-profile/security/api-tokens)
     "jira_domain": "", # Your Jira domain
     "working_day_api_token": "", # Your working day api token (https://rapidapi.com/joursouvres-api/api/working-days)"
-    "my_country_code": "UA" # Change to your country code
+    "my_country_code": "UA", # Change to your country code
+    "users": {{}}, # Fill for manager mode
+    "excel_folder": "{home_dir}" # Update if needed
 }"""
 
     file.write_text(data)
