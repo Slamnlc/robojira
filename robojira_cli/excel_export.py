@@ -31,6 +31,7 @@ class ExcelExporter:
         self.create_formats()
         self.fill_summary_page()
         self.wb.close()
+        print(f"Report path: {path}")
 
     def create_formats(self):
         center = {"align": "center", "valign": "vcenter"}
