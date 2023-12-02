@@ -5,9 +5,9 @@ from typing import Optional, Dict, List
 
 from requests import Session
 
-from helpers.classes import WorklogReport
-from helpers.dateutils import last_day_of_month, get_current_year
-from helpers.text_decoration import color_text
+from robojira_cli.helpers.classes import WorklogReport
+from robojira_cli.helpers.dateutils import last_day_of_month, get_current_year
+from robojira_cli.helpers.text_decoration import color_text
 
 
 class JiraApi:
