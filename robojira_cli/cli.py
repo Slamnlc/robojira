@@ -4,18 +4,18 @@ import argparse
 import calendar
 from datetime import datetime
 
-from config_helper import (
+from .config_helper import (
     is_config_file_exists,
     create_config_file,
     read_config_file,
     validate_config_data,
 )
 from excel_export import ExcelExporter
-from robojira_cli.helpers.classes import UserReport
-from robojira_cli.helpers.dateutils import get_current_year, last_day_of_month
-from robojira_cli.helpers.report_analyzer import analyze_reports
-from robojira_cli.helpers.working_days import WorkingDaysApi
-from jira_client import JiraApi
+from .helpers.classes import UserReport
+from .helpers.dateutils import get_current_year, last_day_of_month
+from .helpers.report_analyzer import analyze_reports
+from .helpers.working_days import WorkingDaysApi
+from .jira_client import JiraApi
 
 current_year = get_current_year()
 
