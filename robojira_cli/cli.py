@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import argparse
 import calendar
+import json
 from datetime import datetime
 
 from .config_helper import (
     is_config_file_exists,
     create_config_file,
     read_config_file,
-    validate_config_data,
+    validate_config_data, get_config_file,
 )
 from .excel_export import ExcelExporter
 from .helpers.classes import UserReport
@@ -44,6 +45,15 @@ robojira_parser.add_argument(
     default="self",
 )
 
+robojira_parser.add_argument(
+    "-c",
+    "--show-config",
+    help="Display config file path and its content",
+    type=bool,
+    action="store_true",
+    default=False,
+)
+
 
 def main():
     if not is_config_file_exists():
@@ -59,6 +69,11 @@ def main():
     args = robojira_parser.parse_args()
     if args.mode not in __execution_modes:
         print(f"--mode should be on of {__execution_modes}")
+        return
+
+    if args.show_config:
+        print(str(get_config_file().absolute()))
+        print(json.dumps(config_data, indent=4))
         return
 
     user = config_data["jira_username"]
