@@ -8,6 +8,7 @@ authors = ["Maksym Biriukov <maximbirukov77@gmail.com>"]
 [tool.poetry.dependencies]
 python = "^3.9"
 xlsxwriter = "^3.1.9"
+requests = "^2.31.0"
 
 [tool.poetry.scripts]
 robojira = "robojira_cli.cli:main"
