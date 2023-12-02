@@ -49,7 +49,6 @@ robojira_parser.add_argument(
     "-c",
     "--show-config",
     help="Display config file path and its content",
-    type=bool,
     action="store_true",
     default=False,
 )
