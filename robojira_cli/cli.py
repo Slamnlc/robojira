@@ -19,13 +19,14 @@ from .helpers.working_days import WorkingDaysApi
 from .jira_client import JiraApi
 
 current_year = get_current_year()
+current_month = datetime.now().month
 
 robojira_parser = argparse.ArgumentParser(
     description="Script to work with Jira worklog"
 )
 
 robojira_parser.add_argument(
-    "-m", "--month", help="Month number", type=int, required=True
+    "-m", "--month", help="Month number", type=int, default=current_month
 )
 
 robojira_parser.add_argument(
