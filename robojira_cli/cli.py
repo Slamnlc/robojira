@@ -155,7 +155,7 @@ def main():
         for code, users in users.items():
             not_working_days = working_day_api.get_not_working_days(month, code)
 
-            print(f"Not working day for {month_name} ({month})")
+            print(f"Not working day for {month_name} ({month}). Code: {code}")
             print("\t" + ", ".join([str(dt) for dt in not_working_days]))
 
             for user in users:
