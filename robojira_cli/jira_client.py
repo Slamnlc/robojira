@@ -5,9 +5,17 @@ from typing import Optional, Dict, List
 
 from requests import Session
 
-from robojira_cli.helpers.classes import WorklogReport
-from robojira_cli.helpers.dateutils import last_day_of_month, get_current_year
-from robojira_cli.helpers.text_decoration import color_text
+try:
+    from robojira_cli.helpers.classes import WorklogReport
+    from robojira_cli.helpers.dateutils import (
+        last_day_of_month,
+        get_current_year,
+    )
+    from robojira_cli.helpers.text_decoration import color_text
+except ImportError:
+    from helpers.classes import WorklogReport
+    from helpers.dateutils import last_day_of_month, get_current_year
+    from helpers.text_decoration import color_text
 
 
 class JiraApi:
@@ -95,6 +103,7 @@ class JiraApi:
         year: int = None,
         user: Optional[str] = None,
         print_report: bool = False,
+        short_report: bool = False,
     ) -> Dict[str, List[WorklogReport]]:
         if user:
             user_data = self.get_user_by_username(user)
@@ -133,6 +142,9 @@ class JiraApi:
             for key, value in issues.items():
                 print(color_text(f"{key}:", "bold"))
                 for report in value:
-                    print(f"\t{report.summary}")
+                    if short_report:
+                        print(f"\t{report.title}")
+                    else:
+                        print(f"\t{report.summary}")
                 print("")
         return issues

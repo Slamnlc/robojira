@@ -6,19 +6,37 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-from .config_helper import (
-    is_config_file_exists,
-    create_config_file,
-    read_config_file,
-    validate_config_data,
-    get_config_file,
-)
-from .excel_export import ExcelExporter
-from .helpers.classes import UserReport
-from .helpers.dateutils import get_current_year, last_day_of_month
-from .helpers.report_analyzer import analyze_reports
-from .helpers.working_days import WorkingDaysApi
-from .jira_client import JiraApi
+try:
+    from .config_helper import (
+        is_config_file_exists,
+        create_config_file,
+        read_config_file,
+        validate_config_data,
+        get_config_file,
+    )
+    from .excel_export import ExcelExporter
+    from .helpers.classes import UserReport
+    from .helpers.dateutils import get_current_year, last_day_of_month
+    from .helpers.report_analyzer import analyze_reports
+    from .helpers.working_days import WorkingDaysApi
+    from .jira_client import JiraApi
+except ImportError:
+    from config_helper import (
+        is_config_file_exists,
+        create_config_file,
+        read_config_file,
+        validate_config_data,
+        get_config_file,
+    )
+    from excel_export import ExcelExporter
+    from helpers.classes import UserReport
+    from helpers.dateutils import (
+        get_current_year,
+        last_day_of_month,
+    )
+    from helpers.report_analyzer import analyze_reports
+    from helpers.working_days import WorkingDaysApi
+    from jira_client import JiraApi
 
 current_year = get_current_year()
 current_month = datetime.now().month
@@ -57,6 +75,14 @@ robojira_parser.add_argument(
     default=False,
 )
 
+robojira_parser.add_argument(
+    "-s",
+    "--short",
+    help="If provided - hours won't be shown",
+    action="store_true",
+    default=False,
+)
+
 
 def main():
     if not is_config_file_exists():
@@ -88,6 +114,7 @@ def main():
 
     month = args.month
     year = args.year
+    short_report = args.short
 
     month_name = calendar.month_name[month]
 
@@ -101,16 +128,19 @@ def main():
         )
         print(f"Not working day for {month_name} ({month})")
         print("\t" + ", ".join([str(dt) for dt in not_working_days]))
-        reports = jira_api.get_month_report(month, year, print_report=True)
+        reports = jira_api.get_month_report(
+            month, year, print_report=True, short_report=args.short
+        )
         start_date = datetime(year, month, 1)
         end_date = last_day_of_month(month, year)
+
         analyze_reports(
             reports,
             not_working_days,
             start_date,
             end_date,
             user,
-            print_output=True,
+            print_output=not short_report,
         )
     elif args.mode == "manager":
         if "users" not in config_data:

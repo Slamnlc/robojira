@@ -6,9 +6,14 @@ from typing import List
 import xlsxwriter
 from xlsxwriter.utility import xl_rowcol_to_cell
 
-from robojira_cli.helpers.classes import UserReport
-from robojira_cli.helpers.dateutils import last_day_of_month
-from robojira_cli.helpers.report_analyzer import analyze_reports
+try:
+    from robojira_cli.helpers.classes import UserReport
+    from robojira_cli.helpers.dateutils import last_day_of_month
+    from robojira_cli.helpers.report_analyzer import analyze_reports
+except ImportError:
+    from helpers.classes import UserReport
+    from helpers.dateutils import last_day_of_month
+    from helpers.report_analyzer import analyze_reports
 
 
 class ExcelExporter:
