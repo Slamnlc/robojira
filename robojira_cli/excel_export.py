@@ -140,7 +140,7 @@ class ExcelExporter:
             row += 1
 
         ws.autofit()
-        return f"internal:{ws.name}!A1"
+        return f"internal:'{ws.name}'!A1"
 
     def create_header(self, column: int, date: datetime):
         self.summary_ws.write(1, column, date.day, self.format("center_border"))
