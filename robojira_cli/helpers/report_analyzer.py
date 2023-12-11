@@ -3,6 +3,7 @@ from typing import Dict, List
 
 from .classes import WorklogReport
 from .text_decoration import color_text
+from robojira_cli.helpers.constants import DATE_FORMAT
 
 
 def analyze_reports(
@@ -16,7 +17,7 @@ def analyze_reports(
     delta = timedelta(days=1)
     missing_dates, extra_time, not_enough_time, ok_days = [], [], [], []
     while start_date <= end_date:
-        date = start_date.strftime("%Y-%m-%d")
+        date = start_date.strftime(DATE_FORMAT)
         day = start_date.day
         if date not in reports:
             if day not in not_working_days:

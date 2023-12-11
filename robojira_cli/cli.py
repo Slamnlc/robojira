@@ -5,6 +5,9 @@ import calendar
 import json
 from datetime import datetime
 from pathlib import Path
+from typing import Dict, Callable, List
+
+from robojira_cli.helpers.export_func import json_export
 
 try:
     from .config_helper import (
@@ -15,7 +18,7 @@ try:
         get_config_file,
     )
     from .excel_export import ExcelExporter
-    from .helpers.classes import UserReport
+    from .helpers.classes import UserReport, WorklogReport
     from .helpers.dateutils import get_current_year, last_day_of_month
     from .helpers.report_analyzer import analyze_reports
     from .helpers.working_days import WorkingDaysApi
@@ -29,7 +32,7 @@ except ImportError:
         get_config_file,
     )
     from excel_export import ExcelExporter
-    from helpers.classes import UserReport
+    from helpers.classes import UserReport, WorklogReport
     from helpers.dateutils import (
         get_current_year,
         last_day_of_month,
@@ -41,6 +44,11 @@ except ImportError:
 current_year = get_current_year()
 current_month = datetime.now().month
 default_excel_report_dir = Path.home()
+
+__output_formats: Dict[
+    str, Callable[[Dict[str, List[WorklogReport]], Path], Path]
+] = {"json": json_export}
+__execution_modes = ["manager", "self"]
 
 robojira_parser = argparse.ArgumentParser(
     description="Script to work with Jira worklog"
@@ -57,8 +65,6 @@ robojira_parser.add_argument(
     type=int,
     default=current_year,
 )
-
-__execution_modes = ["manager", "self"]
 
 robojira_parser.add_argument(
     "--mode",
@@ -79,6 +85,23 @@ robojira_parser.add_argument(
     "-s",
     "--short",
     help="If provided - hours won't be shown",
+    action="store_true",
+    default=False,
+)
+
+robojira_parser.add_argument(
+    "-o",
+    "--output",
+    help="Provide output format for self mode. "
+    f"One of {list(__output_formats.keys())}",
+    type=str,
+    default="",
+)
+
+robojira_parser.add_argument(
+    "-t",
+    "--today",
+    help="Show today report",
     action="store_true",
     default=False,
 )
@@ -121,7 +144,13 @@ def main():
     working_day_api = WorkingDaysApi(working_day_token)
     jira_api = JiraApi(jira_domain, user, token)
 
-    if args.mode == "self":
+    if args.today:
+        for date, worklogs in jira_api.get_report(datetime.today()).items():
+            print(f"🏔️ Report for: {date} 🏔️\n")
+            for worklog in worklogs:
+                print(worklog.title)
+
+    elif args.mode == "self":
         print("🤓 Running in self-check mode 🤓")
         not_working_days = working_day_api.get_not_working_days(
             month, user_country_code, year
@@ -142,6 +171,15 @@ def main():
             user,
             print_output=not short_report,
         )
+
+        if args.output and args.output in __output_formats:
+            func = __output_formats[args.output]
+            folder = Path(
+                config_data.get("excel_folder", default_excel_report_dir)
+            )
+            print("Output file:")
+            print(str(func(reports, folder).absolute()))
+
     elif args.mode == "manager":
         if "users" not in config_data:
             print("'users' key is missing in config file")

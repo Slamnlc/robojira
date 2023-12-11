@@ -6,6 +6,8 @@ from typing import List
 import xlsxwriter
 from xlsxwriter.utility import xl_rowcol_to_cell
 
+from robojira_cli.helpers.constants import DATE_FORMAT
+
 try:
     from robojira_cli.helpers.classes import UserReport
     from robojira_cli.helpers.dateutils import last_day_of_month
@@ -85,7 +87,7 @@ class ExcelExporter:
         while start_date <= end_date:
             self.create_header(column, start_date)
 
-            date = start_date.strftime("%Y-%m-%d")
+            date = start_date.strftime(DATE_FORMAT)
             row = 3
             for user_report in self.reports:
                 self.fill_user_row(user_report, row, column, user_added, date)

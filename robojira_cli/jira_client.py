@@ -5,6 +5,8 @@ from typing import Optional, Dict, List
 
 from requests import Session
 
+from robojira_cli.helpers.constants import DATE_FORMAT
+
 try:
     from robojira_cli.helpers.classes import WorklogReport
     from robojira_cli.helpers.dateutils import (
@@ -44,10 +46,10 @@ class JiraApi:
         self,
         date: datetime,
         user_id: Optional[str] = None,
-    ) -> Dict[str, WorklogReport]:
+    ) -> Dict[str, List[WorklogReport]]:
         if not user_id:
             user_id = self.user_id
-        issue_date = date.strftime("%Y-%m-%d")
+        issue_date = date.strftime(DATE_FORMAT)
         query = f"worklogDate = {issue_date} AND worklogAuthor = {user_id}"
         params = {"jql": query, "maxResults": 100, "fields": "summary,worklog"}
         url = self.base_url + "/search"
@@ -65,12 +67,10 @@ class JiraApi:
                     if worklog["updateAuthor"]["accountId"] != user_id:
                         continue
                     worklog_date = datetime.fromisoformat(worklog["started"])
-                    if worklog_date.strftime("%Y-%m-%d") == issue_date:
+                    if worklog_date.strftime(DATE_FORMAT) == issue_date:
                         total_time += worklog["timeSpentSeconds"]
             if total_time == 0:
-                total_time = self.get_worklog_time(
-                    issue["key"], date, user_id
-                )
+                total_time = self.get_worklog_time(issue["key"], date, user_id)
             title = f'{issue["key"]}: {fields["summary"]}'
 
             issues.append(WorklogReport(title, total_time))
