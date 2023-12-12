@@ -66,7 +66,12 @@ class JiraApi:
                 for worklog in fields["worklog"]["worklogs"]:
                     if worklog["updateAuthor"]["accountId"] != user_id:
                         continue
-                    worklog_date = datetime.fromisoformat(worklog["started"])
+                    started = worklog["started"]
+                    try:
+                        worklog_date = datetime.fromisoformat(started)
+                    except ValueError:
+                        started = started.split("T")[0]
+                        worklog_date = datetime.strptime(started, "%Y-%m-%d")
                     if worklog_date.strftime(DATE_FORMAT) == issue_date:
                         total_time += worklog["timeSpentSeconds"]
             if total_time == 0:
