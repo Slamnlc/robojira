@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 import calendar
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, Callable, List
 
@@ -99,11 +99,12 @@ robojira_parser.add_argument(
 )
 
 robojira_parser.add_argument(
-    "-t",
-    "--today",
-    help="Show today report",
-    action="store_true",
-    default=False,
+    "-t", "--today",
+    help="Show today report (0 if just -t, 1 if -t 1)",
+    nargs="?",
+    const=0,
+    default=None,
+    type=int
 )
 
 
@@ -144,11 +145,18 @@ def main():
     working_day_api = WorkingDaysApi(working_day_token)
     jira_api = JiraApi(jira_domain, user, token)
 
-    if args.today:
-        for date, worklogs in jira_api.get_report(datetime.today()).items():
+    if args.today is not None:
+        spent = 0
+        date = datetime.today() - timedelta(days=args.today)
+
+        for date, worklogs in jira_api.get_report(date).items():
             print(f"🏔️ Report for: {date} 🏔️\n")
             for worklog in worklogs:
-                print(worklog.title)
+                spent += worklog.time_in_seconds
+                print(worklog.title, worklog.spent_time)
+
+        spent_hours = round(spent / (60 * 60), 2)
+        print(f"Total spent time: {spent_hours}h")
 
     elif args.mode == "self":
         print("🤓 Running in self-check mode 🤓")
