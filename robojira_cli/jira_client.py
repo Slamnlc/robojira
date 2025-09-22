@@ -52,7 +52,7 @@ class JiraApi:
         issue_date = date.strftime(DATE_FORMAT)
         query = f"worklogDate = {issue_date} AND worklogAuthor = {user_id}"
         params = {"jql": query, "maxResults": 100, "fields": "summary,worklog"}
-        url = self.base_url + "/search"
+        url = self.base_url + "/search/jql"
         response = self.session.get(url, params=params)
         if not response.ok:
             raise ValueError(response.content)
