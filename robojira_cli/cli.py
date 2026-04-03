@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import argparse
+import asyncio
 import calendar
 import json
+import time
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, Callable, List
@@ -45,9 +47,9 @@ current_year = get_current_year()
 current_month = datetime.now().month
 default_excel_report_dir = Path.home()
 
-__output_formats: Dict[
-    str, Callable[[Dict[str, List[WorklogReport]], Path], Path]
-] = {"json": json_export}
+__output_formats: Dict[str, Callable[[Dict[str, List[WorklogReport]], Path], Path]] = {
+    "json": json_export
+}
 __execution_modes = ["manager", "self"]
 
 robojira_parser = argparse.ArgumentParser(
@@ -92,23 +94,24 @@ robojira_parser.add_argument(
 robojira_parser.add_argument(
     "-o",
     "--output",
-    help="Provide output format for self mode. "
-    f"One of {list(__output_formats.keys())}",
+    help=f"Provide output format for self mode. One of {list(__output_formats.keys())}",
     type=str,
     default="",
 )
 
 robojira_parser.add_argument(
-    "-t", "--today",
+    "-t",
+    "--today",
     help="Show today report (0 if just -t, 1 if -t 1)",
     nargs="?",
     const=0,
     default=None,
-    type=int
+    type=int,
 )
 
 
-def main():
+async def main():
+    start = time.time()
     if not is_config_file_exists():
         file = create_config_file()
         print("Config file created, please, fill it")
@@ -149,23 +152,27 @@ def main():
         spent = 0
         date = datetime.today() - timedelta(days=args.today)
 
-        for date, worklogs in jira_api.get_report(date).items():
+        report = await jira_api.get_report(date)
+
+        for date, worklogs in report.items():
             print(f"🏔️ Report for: {date} 🏔️\n")
             for worklog in worklogs:
                 spent += worklog.time_in_seconds
                 print(worklog.title, worklog.spent_time)
 
         spent_hours = round(spent / (60 * 60), 2)
-        print(f"Total spent time: {spent_hours}h")
+        print(f"\nTotal spent time: {spent_hours}h")
+        end = round(time.time() - start, 2)
+        print(f"Execution time: {end}s")
 
     elif args.mode == "self":
         print("🤓 Running in self-check mode 🤓")
-        not_working_days = working_day_api.get_not_working_days(
+        not_working_days = await working_day_api.get_not_working_days(
             month, user_country_code, year
         )
         print(f"Not working day for {month_name} ({month})")
         print("\t" + ", ".join([str(dt) for dt in not_working_days]))
-        reports = jira_api.get_month_report(
+        reports = await jira_api.get_month_report(
             month, year, print_report=True, short_report=args.short
         )
         start_date = datetime(year, month, 1)
@@ -182,9 +189,7 @@ def main():
 
         if args.output and args.output in __output_formats:
             func = __output_formats[args.output]
-            folder = Path(
-                config_data.get("excel_folder", default_excel_report_dir)
-            )
+            folder = Path(config_data.get("excel_folder", default_excel_report_dir))
             print("Output file:")
             print(str(func(reports, folder).absolute()))
 
@@ -199,13 +204,13 @@ def main():
         user_reports = []
 
         for code, users in users.items():
-            not_working_days = working_day_api.get_not_working_days(month, code)
+            not_working_days = await working_day_api.get_not_working_days(month, code)
 
             print(f"Not working day for {month_name} ({month}). Code: {code}")
             print("\t" + ", ".join([str(dt) for dt in not_working_days]))
 
             for user in users:
-                reports = jira_api.get_month_report(month, user=user)
+                reports = await jira_api.get_month_report(month, user=user)
                 start_date = datetime(year, month, 1)
                 end_date = last_day_of_month(month, year)
                 analyze_reports(
@@ -225,4 +230,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

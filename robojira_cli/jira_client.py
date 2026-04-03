@@ -1,9 +1,10 @@
+import time
 from datetime import datetime, timedelta
 from functools import partial
 from multiprocessing import Pool
 from typing import Optional, Dict, List
 
-from requests import Session
+import httpx
 
 from robojira_cli.helpers.constants import DATE_FORMAT
 
@@ -23,38 +24,50 @@ except ImportError:
 class JiraApi:
     def __init__(self, domain: str, login: str, token: str):
         self.base_url = f"https://{domain}.atlassian.net/rest/api/3"
-        self.session = Session()
-        self.session.auth = (login, token)
-        self.session.headers.update({"Content-Type": "application/json"})
-        self.myself = self.get_myself()
-        self.user_id = self.myself["accountId"]
+        self.auth = httpx.BasicAuth(login or "", token or "")
+        self._user_id = None
 
-    def get_myself(self) -> dict:
-        return self.session.get(f"{self.base_url}/myself").json()
+    async def get_user_id(self) -> str:
+        if not self._user_id:
+            myself = (await self.get_myself())["accountId"]
+            self._user_id = myself
 
-    def get_user_by_username(self, username: str) -> Optional[dict]:
+        return self._user_id
+
+    async def get_myself(self) -> Dict[str, str]:
+        response = await self.request("get", "/myself")
+        return response.json()
+
+    async def request(self, method: str, url: str, **kwargs) -> httpx.Response:
+        async with httpx.AsyncClient(auth=self.auth, base_url=self.base_url) as client:
+            response = await client.request(method, url, **kwargs)
+            return response
+
+    async def get_user_by_username(self, username: str) -> Optional[dict]:
         url = f"{self.base_url}/user/search"
         params = {"query": username}
-        response = self.session.get(url, params=params)
-        if not response.ok:
+        response = await self.request("GET", url, params=params)
+
+        if not response.is_success:
             raise ValueError(response.content)
         data = response.json()
         if data:
             return data[0]
 
-    def get_report(
+    async def get_report(
         self,
         date: datetime,
         user_id: Optional[str] = None,
     ) -> Dict[str, List[WorklogReport]]:
         if not user_id:
-            user_id = self.user_id
+            user_id = await self.get_user_id()
         issue_date = date.strftime(DATE_FORMAT)
         query = f"worklogDate = {issue_date} AND worklogAuthor = {user_id}"
         params = {"jql": query, "maxResults": 100, "fields": "summary,worklog"}
         url = self.base_url + "/search/jql"
-        response = self.session.get(url, params=params)
-        if not response.ok:
+
+        response = await self.request("GET", url, params=params)
+        if not response.is_success:
             raise ValueError(response.content)
         issues = []
         for issue in response.json()["issues"]:
@@ -75,14 +88,14 @@ class JiraApi:
                     if worklog_date.strftime(DATE_FORMAT) == issue_date:
                         total_time += worklog["timeSpentSeconds"]
             if total_time == 0:
-                total_time = self.get_worklog_time(issue["key"], date, user_id)
-            title = f'{issue["key"]}: {fields["summary"]}'
+                total_time = await self.get_worklog_time(issue["key"], date, user_id)
+            title = f"{issue['key']}: {fields['summary']}"
 
             issues.append(WorklogReport(title, total_time))
 
         return {issue_date: issues}
 
-    def get_worklog_time(
+    async def get_worklog_time(
         self, issue_key: str, date: datetime, user_id: str
     ) -> int:
         url = f"{self.base_url}/issue/{issue_key}/worklog"
@@ -93,16 +106,18 @@ class JiraApi:
             "startedBefore": int(end.timestamp() * 1000),
         }
 
-        response = self.session.get(url, params=params).json()
+        response = await self.request("GET", url, params=params)
+        data = response.json()
+
         total_time = 0
-        for worklog in response["worklogs"]:
+        for worklog in data["worklogs"]:
             if worklog["updateAuthor"]["accountId"] != user_id:
                 continue
             total_time += worklog["timeSpentSeconds"]
 
         return total_time
 
-    def get_month_report(
+    async def get_month_report(
         self,
         month_number: int,
         year: int = None,
@@ -111,12 +126,12 @@ class JiraApi:
         short_report: bool = False,
     ) -> Dict[str, List[WorklogReport]]:
         if user:
-            user_data = self.get_user_by_username(user)
+            user_data = await self.get_user_by_username(user)
             if not user_data:
                 print(f"Can't find user with username {user}")
             user_id = user_data["accountId"]
         else:
-            user_id = self.user_id
+            user_id = await self.get_user_id()
 
         if not year:
             year = get_current_year()

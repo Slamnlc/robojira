@@ -27,7 +27,5 @@ class UserReport:
 
     def get_expected_working_hours(self) -> int:
         last_day = last_day_of_month(self.month, self.year).day
-        days = [
-            day for day in range(last_day) if day not in self.not_working_days
-        ]
+        days = [day for day in range(last_day) if day not in self.not_working_days]
         return len(days) * 8

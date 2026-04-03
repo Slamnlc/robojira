@@ -1,19 +1,18 @@
-[tool.poetry]
+[project]
 name = "robojira-cli"
-version = "0.7.0"
-description = ""
+version = "0.8.0"
+description = "A CLI tool for Jira automation"
 readme = "README.md"
-authors = ["Maksym Biriukov <maximbirukov77@gmail.com>"]
+authors = [{name = "Maksym Biriukov", email = "maximbirukov77@gmail.com"}]
+requires-python = ">=3.9,<3.13"
+dependencies = [
+    "httpx>=0.28.1",
+    "xlsxwriter>=3.1.9",
+]
 
-[tool.poetry.dependencies]
-python = "^3.9"
-xlsxwriter = "^3.1.9"
-requests = "^2.31.0"
-
-[tool.poetry.scripts]
+[project.scripts]
 robojira = "robojira_cli.cli:main"
 
-
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"

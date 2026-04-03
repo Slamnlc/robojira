@@ -44,13 +44,9 @@ class ExcelExporter:
         center = {"align": "center", "valign": "vcenter"}
         border = {"border": 1}
         self._formats["bold"] = self.wb.add_format({"bold": True})
-        self._formats["bold_center"] = self.wb.add_format(
-            {**center, "bold": True}
-        )
+        self._formats["bold_center"] = self.wb.add_format({**center, "bold": True})
         self._formats["center"] = self.wb.add_format(center)
-        self._formats["center_border"] = self.wb.add_format(
-            {**center, **border}
-        )
+        self._formats["center_border"] = self.wb.add_format({**center, **border})
         self._formats["center_border_bold"] = self.wb.add_format(
             {**center, **border, "bold": True}
         )
@@ -168,9 +164,7 @@ class ExcelExporter:
             )
         if date in user_report.reports:
             reports = user_report.reports[date]
-            spent_time = round(
-                sum(worklog.time_in_seconds for worklog in reports), 2
-            )
+            spent_time = round(sum(worklog.time_in_seconds for worklog in reports), 2)
             spent_hours = round(spent_time / 60 / 60, 2)
 
             if spent_hours > 8:

@@ -24,9 +24,7 @@ def analyze_reports(
                 missing_dates.append(str(day))
         else:
             report = reports[date]
-            spent_time = round(
-                sum(worklog.time_in_seconds for worklog in report), 2
-            )
+            spent_time = round(sum(worklog.time_in_seconds for worklog in report), 2)
 
             spent_hours = round(spent_time / 60 / 60, 2)
             if spent_hours > 8:
