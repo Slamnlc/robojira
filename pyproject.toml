@@ -1,6 +1,6 @@
 [project]
 name = "robojira-cli"
-version = "0.8.0"
+version = "0.8.1"
 description = "A CLI tool for Jira automation"
 readme = "README.md"
 authors = [{name = "Maksym Biriukov", email = "maximbirukov77@gmail.com"}]
@@ -11,7 +11,7 @@ dependencies = [
 ]
 
 [project.scripts]
-robojira = "robojira_cli.cli:main"
+robojira = "robojira_cli.cli:run_main"
 
 [build-system]
 requires = ["hatchling"]

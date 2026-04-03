@@ -228,6 +228,8 @@ async def main():
         excel_folder = config_data.get("excel_folder", default_excel_report_dir)
         ExcelExporter(user_reports, month, year, Path(excel_folder))
 
+def run_main():
+    asyncio.run(main())
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    run_main()
